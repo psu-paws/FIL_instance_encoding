@@ -1,0 +1,6 @@
+CUDA_VISIBLE_DEVICES=1 python3 run.py --dataset glue-sst2 --jvp-parallelism 768 --split-layer 0 --target-lb 10. --model distilbert --train-lb 10. --test-bs 1 --train-seed 123 --load-from-file --jacloss-alpha 0.01
+CUDA_VISIBLE_DEVICES=1 python3 run.py --dataset glue-sst2 --jvp-parallelism 768 --split-layer 0 --target-lb 100. --model distilbert --train-lb 100. --test-bs 1 --train-seed 123 --load-from-file --jacloss-alpha 0.01
+CUDA_VISIBLE_DEVICES=1 python3 run.py --dataset glue-sst2 --jvp-parallelism 768 --split-layer 2 --target-lb 10. --model distilbert --train-lb 10. --test-bs 1 --train-seed 123 --load-from-file --jacloss-alpha 1.
+CUDA_VISIBLE_DEVICES=1 python3 run.py --dataset glue-sst2 --jvp-parallelism 768 --split-layer 2 --target-lb 100. --model distilbert --train-lb 100. --test-bs 1 --train-seed 123 --load-from-file --jacloss-alpha 0.
+CUDA_VISIBLE_DEVICES=1 python3 run.py --dataset glue-sst2 --jvp-parallelism 768 --split-layer 4 --target-lb 10. --model distilbert --train-lb 10. --test-bs 1 --train-seed 123 --load-from-file --jacloss-alpha 1.
+CUDA_VISIBLE_DEVICES=1 python3 run.py --dataset glue-sst2 --jvp-parallelism 768 --split-layer 4 --target-lb 100. --model distilbert --train-lb 100. --test-bs 1 --train-seed 123 --load-from-file --jacloss-alpha 0.

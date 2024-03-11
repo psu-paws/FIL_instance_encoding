@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 python3 run.py --reconstruct --num-save 10 --num-recon 100 --jvp-parallelism 100 --split-layer 0 --reconstruct-method tv --tv-lmbda 0 --model ncf-mlp --dataset movielens-20 --pooling max --train-lb 0. --target-lb 0.0 --train-seed 123 --train-bs 128 --load-from-file --recon-iter 50000 --recon-lr 1e-2

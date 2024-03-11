@@ -1,0 +1,3 @@
+[submodule "sliced_score_matching"]
+	path = sliced_score_matching
+	url = git@github.com:ermongroup/sliced_score_matching.git

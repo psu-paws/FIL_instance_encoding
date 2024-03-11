@@ -1,0 +1,1 @@
+CUDA_VISIBLE_DEVICES=1 python3 train_attacker.py --dataset cifar10 --encoder-model resnet18 --activation gelu --lr 1e-4 --target-lb 1. --bs 64 --standardize --pooling avg --seed 123 --split-layer 7 --jvp-parallelism 100 --encoder-file models/resnet18_cifar10_l-1_b-1_standardize-True_act_gelu_pool_avg_bs128_seed123.pt
