@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument('--jacloss-alpha', type=float, default=0.0) # With CIFAR-10, 0.1 seems to improve the accuracy.
     parser.add_argument('--jvp-parallelism', type=int, default=1)
     parser.add_argument('--train-lb', type=float, default=0.0) # Add a train-time noise
-    parser.add_argument('--target-lb', type=float, default=1.0) # Noise for privacy (inference or split_learning).
+    parser.add_argument('--target-lb', type=float, default=0.0) # Noise for privacy (inference or split_learning).
     parser.add_argument('--optimizer', type=str, default="sgd") # Add a train-time noise
     parser.add_argument('--scheduler', type=str, default="warmupcosine") # Add a train-time noise
     parser.add_argument('--input-noise', type=float, default=0.0)
@@ -303,12 +303,17 @@ def train(args):
 
         net.eval()
 
-        if args.split_learning:
-            tr_mean = None
-            sigma = torch.tensor(0.).to(device)
+        if target_lb > 0:
+            if args.split_learning:
+                tr_mean = None
+                sigma = torch.tensor(0.).to(device)
+            else:
+                tr_mean, d = calc_mean_tr(net, test_loader, calc_tr, device, args.jvp_parallelism, emb_func=net.forward_embs if args.dataset == "movielens-20" else None)
+                sigma = torch.sqrt(torch.tensor(target_lb * tr_mean / d)).to(device)
         else:
-            tr_mean, d = calc_mean_tr(net, test_loader, calc_tr, device, args.jvp_parallelism, emb_func=net.forward_embs if args.dataset == "movielens-20" else None)
-            sigma = torch.sqrt(torch.tensor(target_lb * tr_mean / d)).to(device)
+            tr_mean = 0.
+            #sigma = torch.tensor([0.]).to(device)
+            sigma = None
         print(f'Eval tr mean: {tr_mean}, sigma {sigma}')
 
         n = 0

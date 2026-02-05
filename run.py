@@ -102,16 +102,6 @@ def run(args):
     else:
         sigma = None
 
-    recon_params = {'method': args.reconstruct_method,
-            'tv_lmbda': args.tv_lmbda,
-            'gaussian_lmbda': args.gaussian_lmbda,
-            'gaussian_mu': args.gaussian_mu,
-            'gaussian_sigma': args.gaussian_sigma,
-            'niters': args.recon_iter,
-            'stop_criterion': args.recon_stop,
-            'lr': args.recon_lr
-            }
-
     n = 0
     total_t = 0
     total_loss = 0
@@ -123,45 +113,21 @@ def run(args):
     ans = torch.tensor([]).to(device)
     print(f"{len(test_loader)}")
     for i, inputs in enumerate(test_loader):
-        if args.dataset == "glue-sst2":
-            x = inputs
-            y = inputs['labels']
-        else:
-            x = inputs[0]
-            y = inputs[1]
+        x = inputs[0]
+        y = inputs[1]
 
-        if args.dataset == "movielens-20":
-            x = [t.to(device) for t in x]
-        elif args.dataset == "glue-sst2":
-            x = {k: v if k == 'sentence' else torch.tensor(v).to(device) for k, v in x.items()}
-        else:
-            x = x.to(device)
+        x = x.to(device)
         y = y.to(device)
 
-        if args.dataset == "movielens-20":
-            x = net.forward_embs(x)
-        elif args.dataset == "glue-sst2":
-            inputs_embeds = net.forward_embs(x['input_ids'])
-            x["inputs_embeds"] = inputs_embeds.detach().clone()
-
-        if args.input_noise > 0.0:
-            x = x + torch.normal(torch.zeros_like(x), args.input_noise)
+        #if args.input_noise > 0.0:
+        #    x = x + torch.normal(torch.zeros_like(x), args.input_noise)
 
         # Run noisy inference
         with torch.no_grad():
-            # dFIL-based noise addition
-            if args.dataset == "glue-sst2":
-                act = net.forward_first(inputs_embeds, x['attention_mask'], for_jacobian=False)
-                # We only cut between the transformer blocks,
-                # so do not need to consider cloning (it is mainly due to inplace operators)
-                y_pred = net.forward_second(x, act, sigma=sigma)
-                loss = y_pred.loss
-                y_pred = y_pred.logits
-            else:
-                act = net.forward_first(x, for_jacobian=False)
-                print(sigma)
-                y_pred = net.forward_second(act.detach().clone(), sigma=sigma)
-                loss = loss_func(y_pred, y)
+            act = net.forward_first(x, for_jacobian=False)
+            print(sigma)
+            y_pred = net.forward_second(act.detach().clone(), sigma=sigma)
+            loss = loss_func(y_pred, y)
 
             total_loss += loss.detach().item() * y.shape[0]
 
@@ -188,29 +154,6 @@ def run(args):
             n += y.shape[0]
 
             print(f"loss {loss}, acc {acc / y.shape[0]}, acc5 {acc5 / y.shape[0]}, auc {auc}")
-
-        # Run reconstruction
-        if args.reconstruct:
-            # Load attack model
-            # Attack model hyperparam only found for certain setups.
-            if args.reconstruct_method == "cnn":
-                imodel_file = get_attack_model_name(args.model_path, model_file, args.dataset, args.split_layer, args.target_lb, args.input_noise, args.last_activation)
-                inet = get_attack_model(args.model, args.dataset, args.split_layer, args.last_activation, device)
-
-                print(imodel_file)
-                inet.load_state_dict(torch.load(imodel_file))
-                print(inet)
-                inet.eval()
-                inet = inet.to(device)
-            else:
-                inet = None
-
-            recon_finished = recon_wrapper(net, x, act, sigma, recon_params, args.dataset,
-                f"{args.model}-{args.reconstruct_method}-layer{args.split_layer}-bott{args.bottleneck_dim}-target{args.target_lb}.png",
-                args.reconstruct_path, data_mu, data_sigma, args.num_save, args.num_recon, device, inet, tokenizer)
-        
-            if recon_finished:
-                break
 
     metric_str = f"Eval "
     if "loss" in metrics:
