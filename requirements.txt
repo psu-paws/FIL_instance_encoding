@@ -5,3 +5,13 @@ torchmetrics
 datasets
 regex
 tokenizers==0.12.1
+
+
+huggingface
+tensorboard
+tqdm
+packaging
+pytorch-lightning
+pillow
+kymatio
+kornia
